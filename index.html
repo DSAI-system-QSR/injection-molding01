@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사출성형 셋업 시간 단축 미션</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .progress-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #dee2e6;
+        }
+
+        .progress-container {
+            background: #e9ecef;
+            border-radius: 25px;
+            height: 25px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 25px;
+        }
+
+        .goals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .goal-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+            transition: transform 0.3s ease;
+        }
+
+        .goal-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .goal-card.achieved {
+            border-left-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        }
+
+        .goal-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .goal-card.achieved .goal-title {
+            color: #28a745;
+        }
+
+        .goal-time {
+            font-size: 2em;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 10px 0;
+        }
+
+        .goal-card.achieved .goal-time {
+            color: #28a745;
+        }
+
+        .capd-section {
+            padding: 30px;
+        }
+
+        .capd-step {
+            margin-bottom: 30px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .capd-step.completed {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda, #f8f9fa);
+        }
+
+        .step-header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            font-size: 1.3em;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .capd-step.completed .step-header {
+            background: #28a745;
+        }
+
+        .step-content {
+            padding: 25px;
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .checklist li:hover {
+            background: #e9ecef;
+        }
+
+        .checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .complete-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .complete-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .complete-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .achievement-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .achievement-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            margin: 20px;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .achievement-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .achievement-title {
+            font-size: 2em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+
+        .achievement-message {
+            font-size: 1.1em;
+            color: #495057;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .continue-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 셋업 마스터 미션</h1>
+            <p>컨넥터 사출성형 셋업 시간 단축 프로젝트</p>
+            <div style="margin-top: 20px;">
+                <div style="display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="workerName" placeholder="작업자 이름을 입력하세요" 
+                           style="padding: 12px 20px; font-size: 1.1em; border: none; border-radius: 25px; 
+                                  width: 250px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: white; font-weight: bold;">현재 셋업시간:</span>
+                        <input type="number" id="currentSetupTime" placeholder="예: 40" min="1" max="180"
+                               style="padding: 12px 15px; font-size: 1.1em; border: none; border-radius: 25px; 
+                                      width: 80px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                        <span style="color: white; font-weight: bold;">분</span>
+                    </div>
+                </div>
+                <button onclick="setWorkerName()" id="nameBtn"
+                        style="margin-top: 15px; padding: 12px 25px; background: #28a745; color: white; 
+                               border: none; border-radius: 25px; font-size: 1.1em; cursor: pointer;">
+                    미션 시작하기
+                </button>
+            </div>
+            <div id="welcomeMessage" style="margin-top: 15px; font-size: 1.3em; font-weight: bold; display: none;"></div>
+        </div>
+
+        <div class="progress-section">
+            <h2>📊 전체 진행률</h2>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="completedSteps">0</div>
+                    <div class="stat-label">완료된 단계</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">전체 단계</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="currentTime">--분</div>
+                    <div class="stat-label">현재 셋업 시간</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: #007bff;">🎯 단계별 목표</h3>
+            <div class="goals">
+                <div class="goal-card" id="goal1">
+                    <div class="goal-title">1단계 목표</div>
+                    <div class="goal-time">--분</div>
+                    <div>5% 단축</div>
+                </div>
+                <div class="goal-card" id="goal2">
+                    <div class="goal-title">2단계 목표</div>
+                    <div class="goal-time">--분</div>
+                    <div>10% 단축</div>
+                </div>
+                <div class="goal-card" id="goal3">
+                    <div class="goal-title">3단계 목표</div>
+                    <div class="goal-time">--분</div>
+                    <div>15% 단축</div>
+                </div>
+                <div class="goal-card" id="goal4">
+                    <div class="goal-title">4단계 목표</div>
+                    <div class="goal-time">--분</div>
+                    <div>20% 단축</div>
+                </div>
+                <div class="goal-card" id="goal5">
+                    <div class="goal-title">5단계 목표</div>
+                    <div class="goal-time">--분</div>
+                    <div>25% 단축</div>
+                </div>
+                <div class="goal-card" id="goal6">
+                    <div class="goal-title">최종 목표</div>
+                    <div class="goal-time">--분</div>
+                    <div>30% 단축</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="capd-section">
+            <h2>📋 CAPD 미션 단계</h2>
+            
+            <!-- Check 단계 -->
+            <div class="capd-step" id="step1">
+                <div class="step-header" onclick="toggleStep(1)">
+                    <span>🔍 C - Check (현재 상태 파악)</span>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <ul class="checklist">
+                        <li><input type="checkbox"> <span id="currentTimeCheck">현재 평균 셋업 시간 측정 완료</span></li>
+                        <li><input type="checkbox"> 금형 교체 시간 세부 측정 (목표: 전체의 40%)</li>
+                        <li><input type="checkbox"> 조건 설정 시간 측정 (목표: 전체의 25%)</li>
+                        <li><input type="checkbox"> 첫 제품 양품까지 시간 측정 (목표: 전체의 35%)</li>
+                        <li><input type="checkbox"> 50톤~180톤 설비별 차이점 파악</li>
+                        <li><input type="checkbox"> 작업자별 숙련도 차이 분석</li>
+                        <li><input type="checkbox"> 금형 보관소에서 설비까지 이동 시간 측정</li>
+                        <li><input type="checkbox"> ⚠️ 현재 작업 중 안전 위험 요소 점검 완료</li>
+                    </ul>
+                    <button class="complete-btn" onclick="completeStep(1)" disabled>단계 완료</button>
+                </div>
+            </div>
+
+            <!-- Analyze 단계 -->
+            <div class="capd-step" id="step2">
+                <div class="step-header" onclick="toggleStep(2)">
+                    <span>🔎 A - Analyze (분석)</span>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <ul class="checklist">
+                        <li><input type="checkbox"> 가장 시간 소모가 큰 3가지 작업 식별</li>
+                        <li><input type="checkbox"> 대기 시간 발생 구간 분석 (온도 대기, 크레인 대기 등)</li>
+                        <li><input type="checkbox"> 반복적 불필요 작업 목록 작성</li>
+                        <li><input type="checkbox"> 도구/자재 찾는 시간 분석</li>
+                        <li><input type="checkbox"> 금형별 표준화 가능 부분 조사</li>
+                        <li><input type="checkbox"> 숙련자 vs 초급자 작업 방식 차이 분석</li>
+                        <li><input type="checkbox"> 컨넥터 정밀도 요구사항으로 인한 추가 시간 분석</li>
+                        <li><input type="checkbox"> ⚠️ 시간 단축으로 인한 안전 위험 요소 분석</li>
+                    </ul>
+                    <button class="complete-btn" onclick="completeStep(2)" disabled>단계 완료</button>
+                </div>
+            </div>
+
+            <!-- Plan 단계 -->
+            <div class="capd-step" id="step3">
+                <div class="step-header" onclick="toggleStep(3)">
+                    <span>📋 P - Plan (개선 계획)</span>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <ul class="checklist">
+                        <li><input type="checkbox"> 5% 단축 위한 즉시 개선안 3가지 수립</li>
+                        <li><input type="checkbox"> 10% 단축 위한 단기 개선안 수립</li>
+                        <li><input type="checkbox"> 15-20% 단축 위한 중기 개선안 수립</li>
+                        <li><input type="checkbox"> 25-30% 단축 위한 장기 개선안 수립</li>
+                        <li><input type="checkbox"> 외부 셋업 vs 내부 셋업 구분 계획</li>
+                        <li><input type="checkbox"> 표준 작업 순서서 작성 계획</li>
+                        <li><input type="checkbox"> 제품별 최적 조건 DB 구축 계획</li>
+                        <li><input type="checkbox"> 투자 비용 vs 효과 분석 완료</li>
+                        <li><input type="checkbox"> ⚠️ 모든 개선 계획에 안전 검토 포함</li>
+                    </ul>
+                    <button class="complete-btn" onclick="completeStep(3)" disabled>단계 완료</button>
+                </div>
+            </div>
+
+            <!-- Do 단계 -->
+            <div class="capd-step" id="step4">
+                <div class="step-header" onclick="toggleStep(4)">
+                    <span>⚡ D - Do (실행 및 검증)</span>
+                    <span>▼</span>
+                </div>
+                <div class="step-content">
+                    <ul class="checklist">
+                        <li><input type="checkbox"> 1-2단계 개선안 실행 (목표: 5-10% 단축 달성)</li>
+                        <li><input type="checkbox"> 1주일간 효과 측정 및 데이터 수집</li>
+                        <li><input type="checkbox"> 3-4단계 개선안 실행 (목표: 15-20% 단축 달성)</li>
+                        <li><input type="checkbox"> 전체 작업자 교육 및 표준화 적용</li>
+                        <li><input type="checkbox"> 5단계 개선안 실행 (목표: 25% 단축 달성)</li>
+                        <li><input type="checkbox"> 최종 목표 달성 검증 (목표: 30% 단축)</li>
+                        <li><input type="checkbox"> 지속적 개선을 위한 모니터링 체계 구축</li>
+                        <li><input type="checkbox"> 성과 공유 및 우수 사례 문서화</li>
+                        <li><input type="checkbox"> ⚠️ 개선된 작업의 안전성 최종 검증 완료</li>
+                    </ul>
+                    <button class="complete-btn" onclick="completeStep(4)" disabled>미션 완료!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 성취 모달 -->
+    <div class="achievement-modal" id="achievementModal">
+        <div class="achievement-content">
+            <div class="achievement-icon" id="achievementIcon">🎉</div>
+            <div class="achievement-title" id="achievementTitle">축하합니다!</div>
+            <div class="achievement-message" id="achievementMessage">첫 번째 단계를 완료했습니다!</div>
+            <button class="continue-btn" onclick="closeModal()">계속 화이팅! 🚀</button>
+        </div>
+    </div>
+
+    <script>
+        let completedSteps = 0;
+        let currentSetupTime = 40;
+        let initialSetupTime = 40;
+        let workerName = "";
+        let goalTimes = [38, 36, 34]; // 동적으로 계산될 예정
+        const achievements = [
+            {
+                icon: "🎯",
+                title: "분석 완료!",
+                message: "현재 상태 파악이 완료되었습니다. 이제 문제점을 찾아보세요!",
+                safety: "⚠️ 안전이 최우선입니다! 분석 과정에서도 안전 수칙을 철저히 준수하세요.",
+                encouragement: "💪 훌륭한 시작입니다! 정확한 분석이 성공의 첫걸음이에요!"
+            },
+            {
+                icon: "🔍",
+                title: "문제 발견!",
+                message: "비효율 요인을 모두 찾았습니다. 개선 계획을 세워보세요!",
+                safety: "⚠️ 안전이 최우선입니다! 문제 해결 시에도 안전한 작업 방법을 우선 고려하세요.",
+                encouragement: "🔥 대단합니다! 문제를 정확히 파악하는 것은 개선의 핵심이에요!"
+            },
+            {
+                icon: "📋",
+                title: "계획 수립!",
+                message: "완벽한 개선 계획이 준비되었습니다. 이제 실행 단계입니다!",
+                safety: "⚠️ 안전이 최우선입니다! 모든 개선 계획에 안전 검토를 포함시키세요.",
+                encouragement: "🚀 멋진 계획이네요! 체계적인 준비가 성공을 보장합니다!"
+            },
+            {
+                icon: "🏆",
+                title: "미션 완성!",
+                message: "모든 CAPD 단계를 완료했습니다! 셋업 마스터가 되셨습니다!",
+                safety: "⚠️ 안전이 최우선입니다! 개선된 작업에서도 항상 안전을 최우선으로 하세요.",
+                encouragement: "🎉 축하합니다! 당신은 이제 진정한 셋업 마스터입니다! 이 성과를 동료들과 공유하고 더 큰 발전을 이뤄나가세요!"
+            }
+        ];
+
+        function calculateGoalTimes(baseTime) {
+            return [
+                Math.round(baseTime * 0.95 * 10) / 10, // 5% 단축
+                Math.round(baseTime * 0.90 * 10) / 10, // 10% 단축
+                Math.round(baseTime * 0.85 * 10) / 10, // 15% 단축
+                Math.round(baseTime * 0.80 * 10) / 10, // 20% 단축
+                Math.round(baseTime * 0.75 * 10) / 10, // 25% 단축
+                Math.round(baseTime * 0.70 * 10) / 10  // 30% 단축
+            ];
+        }
+
+        function updateGoalCards() {
+            if (goalTimes.length < 6) return; // 목표 시간이 계산되지 않은 경우 리턴
+            
+            const percentages = [5, 10, 15, 20, 25, 30];
+            
+            for (let i = 0; i < 6; i++) {
+                document.querySelector(`#goal${i+1} .goal-time`).textContent = goalTimes[i] + '분';
+                
+                const savings = Math.round((initialSetupTime - goalTimes[i]) * 10) / 10;
+                document.querySelector(`#goal${i+1} div:last-child`).textContent = 
+                    `${percentages[i]}% 단축 (${savings}분 절약)`;
+            }
+        }
+
+        function setWorkerName() {
+            const nameInput = document.getElementById('workerName');
+            const timeInput = document.getElementById('currentSetupTime');
+            const name = nameInput.value.trim();
+            const setupTime = parseFloat(timeInput.value);
+            
+            if (name === "") {
+                alert("작업자 이름을 입력해주세요!");
+                nameInput.focus();
+                return;
+            }
+            
+            if (!setupTime || setupTime <= 0) {
+                alert("현재 셋업시간을 올바르게 입력해주세요!");
+                timeInput.focus();
+                return;
+            }
+            
+            workerName = name;
+            initialSetupTime = setupTime;
+            currentSetupTime = setupTime;
+            goalTimes = calculateGoalTimes(setupTime);
+            
+            const welcomeMsg = document.getElementById('welcomeMessage');
+            welcomeMsg.innerHTML = `${workerName}님, 현재 ${setupTime}분에서 ${goalTimes[2]}분으로 단축에 도전하세요! 💪`;
+            welcomeMsg.style.display = 'block';
+            
+            // 목표 카드 업데이트
+            updateGoalCards();
+            updateInitialDisplay();
+            
+            // 첫 번째 체크리스트 항목 업데이트
+            document.getElementById('currentTimeCheck').textContent = 
+                `현재 평균 셋업 시간 ${setupTime}분 측정 완료`;
+            
+            // 입력 필드와 버튼 숨기기
+            nameInput.style.display = 'none';
+            timeInput.style.display = 'none';
+            timeInput.previousElementSibling.style.display = 'none'; // "현재 셋업시간:" 라벨
+            timeInput.nextElementSibling.style.display = 'none'; // "분" 라벨
+            document.getElementById('nameBtn').style.display = 'none';
+            
+            // 첫 번째 단계 활성화
+            toggleStep(1);
+        }
+
+        function toggleStep(stepNum) {
+            const content = document.querySelector(`#step${stepNum} .step-content`);
+            const header = document.querySelector(`#step${stepNum} .step-header span:last-child`);
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                header.textContent = '▼';
+            } else {
+                content.classList.add('active');
+                header.textContent = '▲';
+            }
+        }
+
+        function updateProgress() {
+            const progress = (completedSteps / 4) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('completedSteps').textContent = completedSteps;
+            
+            // 목표 달성 체크 (CAPD 단계에 따라 6단계 목표 달성)
+            if (completedSteps >= 1 && goalTimes.length >= 6) {
+                // CAPD 1단계 완료 → 목표 1-2단계 달성 (5%, 10%)
+                document.getElementById('goal1').classList.add('achieved');
+                document.getElementById('goal2').classList.add('achieved');
+                currentSetupTime = goalTimes[1]; // 10% 단축까지 달성
+            }
+            if (completedSteps >= 2 && goalTimes.length >= 6) {
+                // CAPD 2단계 완료 → 목표 3-4단계 달성 (15%, 20%)
+                document.getElementById('goal3').classList.add('achieved');
+                document.getElementById('goal4').classList.add('achieved');
+                currentSetupTime = goalTimes[3]; // 20% 단축까지 달성
+            }
+            if (completedSteps >= 3 && goalTimes.length >= 6) {
+                // CAPD 3단계 완료 → 목표 5단계 달성 (25%)
+                document.getElementById('goal5').classList.add('achieved');
+                currentSetupTime = goalTimes[4]; // 25% 단축까지 달성
+            }
+            if (completedSteps >= 4 && goalTimes.length >= 6) {
+                // CAPD 4단계 완료 → 최종 목표 달성 (30%)
+                document.getElementById('goal6').classList.add('achieved');
+                currentSetupTime = goalTimes[5]; // 30% 단축 달성
+            }
+            
+            document.getElementById('currentTime').textContent = currentSetupTime + '분';
+        }
+
+        function updateInitialDisplay() {
+            // 초기 설정시 현재 시간 표시 (진행률 계산 없이)
+            document.getElementById('currentTime').textContent = currentSetupTime + '분';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('completedSteps').textContent = '0';
+        }
+
+        function completeStep(stepNum) {
+            document.getElementById(`step${stepNum}`).classList.add('completed');
+            completedSteps++;
+            updateProgress();
+            showAchievement(stepNum - 1);
+        }
+
+        function showAchievement(index) {
+            const modal = document.getElementById('achievementModal');
+            const achievement = achievements[index];
+            
+            document.getElementById('achievementIcon').textContent = achievement.icon;
+            document.getElementById('achievementTitle').textContent = `${workerName}님 ${achievement.title}`;
+            
+            // 기본 메시지 + 안전 메시지 + 응원 메시지
+            let fullMessage = achievement.message + '<br><br>' + achievement.safety + '<br><br>' + achievement.encouragement;
+            
+            // 마지막 단계 완료시 특별 메시지
+            if (index === 3) {
+                const reductionPercent = Math.round(((initialSetupTime - goalTimes[5]) / initialSetupTime) * 100);
+                const timeSaved = Math.round((initialSetupTime - goalTimes[5]) * 10) / 10;
+                fullMessage = `${workerName}님이 셋업 마스터가 되었습니다!<br>` +
+                             `${initialSetupTime}분에서 ${goalTimes[5]}분으로 ${reductionPercent}% 단축 달성! (${timeSaved}분 절약)<br><br>` +
+                             achievement.safety + '<br><br>' + achievement.encouragement;
+            }
+            
+            document.getElementById('achievementMessage').innerHTML = fullMessage;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('achievementModal').style.display = 'none';
+        }
+
+        // 체크박스 이벤트 리스너
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox') {
+                const stepContent = e.target.closest('.step-content');
+                const checkboxes = stepContent.querySelectorAll('input[type="checkbox"]');
+                const completeBtn = stepContent.querySelector('.complete-btn');
+                
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                completeBtn.disabled = !allChecked;
+            }
+        });
+
+        // 엔터키로 이름 입력
+        document.getElementById('workerName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                setWorkerName();
+            }
+        });
+
+        // 엔터키로 시간 입력
+        document.getElementById('currentSetupTime').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                setWorkerName();
+            }
+        });
+    </script>
+</body>
+</html>
